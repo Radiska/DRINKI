@@ -1,0 +1,273 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{padding:1rem 0;font-family:var(--font-sans)}
+.top-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.25rem;align-items:center}
+.top-bar span{font-size:13px;color:var(--color-text-secondary);margin-right:4px}
+.filter-btn{font-size:13px;padding:5px 13px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer}
+.filter-btn.active{background:#534AB7;color:#EEEDFE;border-color:#534AB7}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;cursor:pointer}
+.card.open{border-color:#534AB7}
+.card-img{width:100%;height:130px;object-fit:cover;display:block;background:var(--color-background-secondary)}
+.card-img-placeholder{width:100%;height:130px;display:flex;align-items:center;justify-content:center;font-size:36px;background:var(--color-background-secondary)}
+.card-body{padding:.85rem 1rem}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px}
+.card-name{font-size:14px;font-weight:500;color:var(--color-text-primary);line-height:1.3}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.badge-wódka{background:#EEEDFE;color:#3C3489}
+.badge-rum{background:#E1F5EE;color:#085041}
+.badge-bez{background:#F1EFE8;color:#444441}
+.card-hint{font-size:12px;color:var(--color-text-tertiary);margin-top:2px}
+.details{display:none;border-top:0.5px solid var(--color-border-tertiary);padding-top:10px;margin-top:10px}
+.card.open .details{display:block}
+.slabel{font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;margin-top:10px}
+.slabel:first-child{margin-top:0}
+.ing-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:3px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.ing-row:last-child{border-bottom:none}
+.ing-name{font-size:13px;color:var(--color-text-primary)}
+.ing-measure{font-size:13px;color:var(--color-text-secondary);text-align:right;flex-shrink:0}
+.ing-measure .ml{font-size:11px;color:var(--color-text-tertiary)}
+.steps{font-size:13px;color:var(--color-text-primary);line-height:1.55}
+.step{display:flex;gap:8px;margin-bottom:5px}
+.step-num{flex-shrink:0;width:18px;height:18px;border-radius:50%;background:#EEEDFE;color:#3C3489;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.tip{font-size:12px;color:var(--color-text-tertiary);margin-top:8px;font-style:italic;line-height:1.5}
+.count{font-size:13px;color:var(--color-text-secondary);margin-top:1rem;text-align:right}
+</style>
+
+<div class="wrap">
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden">Menu drinków na imprezę z przepisami i zdjęciami</h2>
+<div class="top-bar">
+  <span>Filtruj:</span>
+  <button class="filter-btn active" onclick="go('all',event)">Wszystkie</button>
+  <button class="filter-btn" onclick="go('wódka',event)">Wódka</button>
+  <button class="filter-btn" onclick="go('rum',event)">Rum</button>
+  <button class="filter-btn" onclick="go('bez',event)">Bez alkoholu</button>
+</div>
+<div class="grid" id="grid"></div>
+<div class="count" id="count"></div>
+</div>
+
+<script>
+const D=[
+{name:"Wódka z colą",base:"wódka",emoji:"🥃",
+ img:"https://images.unsplash.com/photo-1527661591475-527312dd65f5?w=400&q=70",
+ ingredients:[
+  {n:"Wódka",u:"kieliszek (50 ml)"},
+  {n:"Cola",u:"szklanka (ok. 200 ml)"},
+  {n:"Lód",u:"garść"},
+  {n:"Cytryna",u:"plasterek (opcja)"}
+ ],
+ steps:["Napełnij szklankę lodem do ¾.","Wlej wódkę.","Uzupełnij colą powoli po ściance szklanki.","Delikatnie zamieszaj i dodaj plasterek cytryny."],
+ tip:"Nie mieszaj za mocno — bąbelki uciekną."
+},
+{name:"Wódka ze Sprite'em",base:"wódka",emoji:"🥤",
+ img:"https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70",
+ ingredients:[
+  {n:"Wódka",u:"kieliszek (50 ml)"},
+  {n:"Sprite",u:"szklanka (ok. 200 ml)"},
+  {n:"Lód",u:"garść"},
+  {n:"Limonka",u:"kilka kropel (opcja)"}
+ ],
+ steps:["Napełnij szklankę lodem.","Wlej wódkę.","Dodaj kilka kropel limonki.","Uzupełnij Sprite'em i delikatnie zamieszaj."],
+ tip:"Lżejsze od wersji z colą — świetne na gorący wieczór."
+},
+{name:"Wódka z wodą gazowaną i limonką",base:"wódka",emoji:"🫧",
+ img:"https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&q=70",
+ ingredients:[
+  {n:"Wódka",u:"kieliszek (50 ml)"},
+  {n:"Woda gazowana",u:"szklanka"},
+  {n:"Limonka",u:"½ sztuki"},
+  {n:"Lód",u:"garść"}
+ ],
+ steps:["Wciśnij sok z połowy limonki do szklanki.","Dodaj lód.","Wlej wódkę.","Uzupełnij wodą gazowaną i zamieszaj."],
+ tip:"Wrzuć wyciśniętą połówkę limonki do szklanki — ładnie wygląda."
+},
+{name:"Grenadine Splash",base:"wódka",emoji:"🌅",
+ img:"https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400&q=70",
+ ingredients:[
+  {n:"Wódka",u:"kieliszek (50 ml)"},
+  {n:"Grenadina",u:"3 łyżki (ok. 30 ml)"},
+  {n:"Sprite lub woda gazowana",u:"szklanka"},
+  {n:"Lód",u:"garść"}
+ ],
+ steps:["Napełnij szklankę lodem.","Wlej wódkę.","Uzupełnij Sprite'em lub wodą gazowaną.","Powoli wlej grenadynę po ściance — opadnie na dno tworząc gradient."],
+ tip:"Nie mieszaj! Efekt wschodu słońca to najlepsza część."
+},
+{name:"Blue Lagoon",base:"wódka",emoji:"💙",
+ img:"https://images.unsplash.com/photo-1560508180-03f285f67ded?w=400&q=70",
+ ingredients:[
+  {n:"Wódka",u:"kieliszek (50 ml)"},
+  {n:"Syrop Blue Curaçao",u:"3 łyżki (ok. 20 ml)"},
+  {n:"Sprite lub woda gazowana",u:"szklanka"},
+  {n:"Limonka",u:"kilka kropel"},
+  {n:"Lód",u:"garść"}
+ ],
+ steps:["Napełnij szklankę lodem.","Wlej wódkę i Blue Curaçao.","Dodaj kilka kropel limonki.","Uzupełnij Sprite'em i delikatnie zamieszaj."],
+ tip:"Intensywny niebieski kolor — efekt wow na imprezie!"
+},
+{name:"Sex on the Beach (domowy)",base:"wódka",emoji:"🏖️",
+ img:"https://images.unsplash.com/photo-1587223075055-82e9a937ddff?w=400&q=70",
+ ingredients:[
+  {n:"Wódka",u:"kieliszek (50 ml)"},
+  {n:"Grenadina",u:"4 łyżki (ok. 40 ml)"},
+  {n:"Sprite lub woda gazowana",u:"pół szklanki"},
+  {n:"Limonka",u:"kilka kropel"},
+  {n:"Lód",u:"garść"}
+ ],
+ steps:["Napełnij szklankę lodem.","Wlej wódkę i sok z limonki.","Uzupełnij Sprite'em.","Powoli wlej grenadynę po ściance na samym końcu."],
+ tip:"Wersja bez soków owocowych — grenadyna zastępuje sok z brzoskwini."
+},
+{name:"Mojito z rumem",base:"rum",emoji:"🌿",
+ img:"https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400&q=70",
+ ingredients:[
+  {n:"Rum biały",u:"kieliszek (50 ml)"},
+  {n:"Cukier brązowy",u:"2 łyżeczki"},
+  {n:"Limonka",u:"½ sztuki"},
+  {n:"Woda gazowana",u:"pół szklanki"},
+  {n:"Lód",u:"garść"},
+  {n:"Mięta",u:"kilka listków (opcja)"}
+ ],
+ steps:["Na dno szklanki wsyp cukier i wciśnij sok z limonki.","Ugnieć łyżeczką aż cukier się częściowo rozpuści.","Jeśli masz miętę — dodaj listki i lekko ugnieć.","Dodaj lód i wlej rum.","Uzupełnij wodą gazowaną i zamieszaj."],
+ tip:"Ugniatanie cukru z limonką to absolutna podstawa smaku!"
+},
+{name:"Cuba Libre",base:"rum",emoji:"🇨🇺",
+ img:"https://images.unsplash.com/photo-1527661591475-527312dd65f5?w=400&q=70",
+ ingredients:[
+  {n:"Rum biały",u:"kieliszek (50 ml)"},
+  {n:"Cola",u:"szklanka (ok. 200 ml)"},
+  {n:"Limonka",u:"¼ sztuki"},
+  {n:"Lód",u:"garść"}
+ ],
+ steps:["Napełnij szklankę lodem.","Wlej rum.","Wciśnij sok z ¼ limonki i wrzuć kawałek do szklanki.","Uzupełnij colą i delikatnie zamieszaj."],
+ tip:"Limonka jest kluczowa — bez niej to tylko rum z colą, nie Cuba Libre!"
+},
+{name:"Rum ze Sprite'em i limonką",base:"rum",emoji:"💚",
+ img:"https://images.unsplash.com/photo-1625759141027-02c23ab5cf6a?w=400&q=70",
+ ingredients:[
+  {n:"Rum biały",u:"kieliszek (50 ml)"},
+  {n:"Sprite",u:"szklanka"},
+  {n:"Limonka",u:"kilka kropel"},
+  {n:"Lód",u:"garść"}
+ ],
+ steps:["Napełnij szklankę lodem.","Wlej rum i sok z limonki.","Uzupełnij Sprite'em.","Krótko zamieszaj i podawaj."],
+ tip:"Najprostszy drink z rumu — gotowy w 30 sekund."
+},
+{name:"Rum z grenadyną",base:"rum",emoji:"🌸",
+ img:"https://images.unsplash.com/photo-1560508180-03f285f67ded?w=400&q=70",
+ ingredients:[
+  {n:"Rum biały",u:"kieliszek (50 ml)"},
+  {n:"Grenadina",u:"3 łyżki (ok. 30 ml)"},
+  {n:"Woda gazowana",u:"szklanka"},
+  {n:"Lód",u:"garść"}
+ ],
+ steps:["Napełnij szklankę lodem.","Wlej rum.","Uzupełnij wodą gazowaną.","Wlej grenadynę powoli po ściance na końcu."],
+ tip:"Słodko-owocowy smak — grenadyna daje ładny efekt wizualny."
+},
+{name:"Blue Caribbean",base:"rum",emoji:"🌊",
+ img:"https://images.unsplash.com/photo-1587223075055-82e9a937ddff?w=400&q=70",
+ ingredients:[
+  {n:"Rum biały",u:"niepełny kieliszek (40 ml)"},
+  {n:"Syrop Blue Curaçao",u:"2 łyżki (ok. 20 ml)"},
+  {n:"Sprite lub woda gazowana",u:"szklanka"},
+  {n:"Limonka",u:"kilka kropel"},
+  {n:"Lód",u:"garść"}
+ ],
+ steps:["Napełnij szklankę lodem.","Wlej rum i Blue Curaçao.","Dodaj kilka kropel limonki.","Uzupełnij Sprite'em i zamieszaj."],
+ tip:"Rum z Blue Curaçao daje bardziej egzotyczny smak niż wersja z wódką."
+},
+{name:"Rum Sour",base:"rum",emoji:"🍋",
+ img:"https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&q=70",
+ ingredients:[
+  {n:"Rum biały",u:"kieliszek (50 ml)"},
+  {n:"Limonka",u:"½ sztuki"},
+  {n:"Cukier brązowy",u:"1 łyżeczka"},
+  {n:"Woda gazowana",u:"odrobina (opcja)"},
+  {n:"Lód",u:"garść"}
+ ],
+ steps:["Na dno szklanki wsyp cukier i wciśnij sok z limonki.","Mieszaj łyżeczką aż cukier się rozpuści.","Dodaj lód i wlej rum.","Opcjonalnie dolej odrobinę wody gazowanej."],
+ tip:"Balansuj słodkie i kwaśne do smaku — każda limonka jest inna."
+},
+{name:"Shirley Temple",base:"bez",emoji:"🌺",
+ img:"https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400&q=70",
+ ingredients:[
+  {n:"Grenadina",u:"3 łyżki (ok. 30 ml)"},
+  {n:"Sprite lub woda gazowana",u:"pełna szklanka"},
+  {n:"Limonka",u:"plasterek"},
+  {n:"Lód",u:"garść"}
+ ],
+ steps:["Napełnij szklankę lodem.","Wlej grenadynę.","Uzupełnij Sprite'em lub wodą gazowaną.","Udekoruj plasterkiem limonki na krawędzi szklanki."],
+ tip:"Klasyczny bezalkoholowy drink — wygląda jak prawdziwy koktajl!"
+},
+{name:"Blue Lemonade",base:"bez",emoji:"🫐",
+ img:"https://images.unsplash.com/photo-1560508180-03f285f67ded?w=400&q=70",
+ ingredients:[
+  {n:"Syrop Blue Curaçao (bezalk.)",u:"3 łyżki (ok. 20 ml)"},
+  {n:"Limonka",u:"½ sztuki"},
+  {n:"Cukier brązowy",u:"1 łyżeczka"},
+  {n:"Woda gazowana",u:"szklanka"},
+  {n:"Lód",u:"garść"}
+ ],
+ steps:["Wsyp cukier i wciśnij sok z limonki do szklanki.","Mieszaj aż cukier się rozpuści.","Dodaj lód i syrop Blue Curaçao.","Uzupełnij wodą gazowaną i delikatnie zamieszaj."],
+ tip:"Sprawdź czy masz syrop (bezalk.) czy likier — likier zawiera alkohol!"
+},
+{name:"Virgin Mojito",base:"bez",emoji:"🍃",
+ img:"https://images.unsplash.com/photo-1625759141027-02c23ab5cf6a?w=400&q=70",
+ ingredients:[
+  {n:"Cukier brązowy",u:"2 łyżeczki"},
+  {n:"Limonka",u:"½ sztuki"},
+  {n:"Woda gazowana",u:"pełna szklanka"},
+  {n:"Lód",u:"garść"},
+  {n:"Mięta",u:"kilka listków (opcja)"}
+ ],
+ steps:["Na dno szklanki wsyp cukier i wciśnij sok z limonki.","Ugnieć łyżeczką do rozpuszczenia cukru.","Jeśli masz miętę — dodaj listki i lekko ugnieć.","Dodaj lód i uzupełnij wodą gazowaną.","Zamieszaj i podawaj od razu."],
+ tip:"Prawdziwy smak mojito pochodzi z ugniatania cukru z limonką!"
+}
+];
+
+let cur='all', openIdx=null;
+
+function go(t,e){
+  cur=t; openIdx=null;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  render();
+}
+
+function toggle(i){
+  openIdx = openIdx===i ? null : i;
+  render();
+}
+
+function render(){
+  const list = cur==='all' ? D : D.filter(d=>d.base===cur);
+  document.getElementById('grid').innerHTML = list.map((d,i)=>`
+    <div class="card${openIdx===i?' open':''}" onclick="toggle(${i})">
+      <img class="card-img" src="${d.img}" alt="${d.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="card-img-placeholder" style="display:none">${d.emoji}</div>
+      <div class="card-body">
+        <div class="card-top">
+          <div class="card-name">${d.name}</div>
+          <span class="badge badge-${d.base}">${d.base==='wódka'?'wódka':d.base==='rum'?'rum':'bezalk.'}</span>
+        </div>
+        <div class="card-hint" style="font-size:12px;color:var(--color-text-tertiary)">${d.ingredients.length} składników · kliknij po przepis</div>
+        <div class="details">
+          <div class="slabel">Składniki</div>
+          ${d.ingredients.map(ing=>`
+            <div class="ing-row">
+              <span class="ing-name">${ing.n}</span>
+              <span class="ing-measure">${ing.u}</span>
+            </div>
+          `).join('')}
+          <div class="slabel" style="margin-top:10px">Jak zrobić</div>
+          ${d.steps.map((s,si)=>`<div class="step"><span class="step-num">${si+1}</span><span>${s}</span></div>`).join('')}
+          ${d.tip?`<p class="tip">💡 ${d.tip}</p>`:''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('count').textContent = list.length+' drinków';
+}
+
+render();
+</script>
